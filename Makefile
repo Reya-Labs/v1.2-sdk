@@ -11,7 +11,7 @@ prettier-check:
 	yarn prettier:check
 
 test:
-	MAINNET_URL=${{secrets.MAINNET_URL}} yarn test
+	yarn test
 
 build:
 	yarn build
