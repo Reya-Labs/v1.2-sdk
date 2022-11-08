@@ -39,7 +39,7 @@ export const getAMM = async ({
   const amm = new AMM({
     id: vammAddress,
     provider,
-    coingeckoApiKey: process.env.REACT_APP_COINGECKO_API_KEY || '',
+    coingeckoApiKey: process.env.COINGECKO_API_KEY || '',
 
     factoryAddress,
     marginEngineAddress,
