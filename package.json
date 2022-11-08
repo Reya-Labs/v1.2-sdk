@@ -18,7 +18,7 @@
     "prepare": "husky install",
     "build": "tsc -p tsconfig.build.json",
     "build-release": "tsc -p tsconfig.dist.json",
-    "test": "jest",
+    "test": "jest --silent",
     "test:watch": "jest --watch",
     "release": "semantic-release"
   },
