@@ -19,17 +19,29 @@ export const extractErrorSignature = (message: string): string => {
 };
 
 export const getErrorReason = (error: any): string => {
-  if (typeof error.error.error.data.data === 'string') {
-    return error.error.error.data.data;
-  }
+  try {
+    if (typeof error.error.error.data.data === 'string') {
+      return error.error.error.data.data;
+    }
+  } catch (_) {}
 
-  if (typeof error.error.data.originalError.data === 'string') {
-    return error.error.data.originalError.data;
-  }
+  try {
+    if (typeof error.error.data.originalError.data === 'string') {
+      return error.error.data.originalError.data;
+    }
+  } catch (_) {}
 
-  if (typeof error.error.data === 'string') {
-    return error.error.data;
-  }
+  try {
+    if (typeof error.error.data === 'string') {
+      return error.error.data;
+    }
+  } catch (_) {}
+
+  try {
+    if (typeof error.data === 'string') {
+      return error.data;
+    }
+  } catch (_) {}
 
   console.error(`Unknown error type. ${error}`);
   throw new Error('Unknown error type');

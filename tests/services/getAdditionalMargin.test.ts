@@ -1,6 +1,6 @@
+import { describe, it } from 'mocha';
+import { expect } from 'chai';
 import { getAdditionalMargin } from '../../src/services/getAdditionalMargin';
-
-jest.setTimeout(50000);
 
 describe('additional margin calculator', () => {
   const tests: [string, [number, number, number], number][] = [
@@ -21,7 +21,7 @@ describe('additional margin calculator', () => {
         fee,
       });
 
-      expect(additionalMargin).toBeCloseTo(result);
+      expect(additionalMargin).to.be.closeTo(result, 0.01);
     });
   });
 });

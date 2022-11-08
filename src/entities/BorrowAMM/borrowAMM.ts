@@ -4,6 +4,7 @@ import { AaveLendingPoolABI, CTokenABI, IERC20MinimalABI } from '../../ABIs';
 import { ONE_YEAR_IN_SECONDS } from '../../constants';
 import { UserSwapInfoArgs } from '../../flows/swap';
 import { getAdditionalMargin } from '../../services/getAdditionalMargin';
+import { exponentialBackoff } from '../../utils/retry';
 import { descale } from '../../utils/scaling';
 import { AMM } from '../AMM/amm';
 import { Position } from '../Position/position';
@@ -45,15 +46,18 @@ export class BorrowAMM {
 
     if (this.amm.rateOracleID === 5) {
       // Aave
-      const lendingPoolAddress = await this.amm.readOnlyContracts.rateOracle.aaveLendingPool();
+      const rateOracleContract = this.amm.readOnlyContracts.rateOracle;
+      const lendingPoolAddress = await exponentialBackoff(() =>
+        rateOracleContract.aaveLendingPool(),
+      );
       const lendingPool = new ethers.Contract(
         lendingPoolAddress,
         AaveLendingPoolABI,
         this.amm.provider,
       );
 
-      const reservesData = await lendingPool.getReserveData(
-        this.amm.readOnlyContracts.token.address,
+      const reservesData = await exponentialBackoff(() =>
+        lendingPool.getReserveData(this.amm.underlyingTokenAddress),
       );
 
       const variableDebtTokenAddress = reservesData.variableDebtTokenAddress;
@@ -63,18 +67,24 @@ export class BorrowAMM {
         this.amm.provider,
       );
 
-      const balance = await variableDebtToken.balanceOf(this.amm.userAddress);
-      const decimals = await variableDebtToken.decimals();
+      const balance = await exponentialBackoff(() =>
+        variableDebtToken.balanceOf(this.amm.userAddress),
+      );
+      const decimals = await exponentialBackoff(() => variableDebtToken.decimals());
       this.borrowBalance = descale(decimals)(balance);
     }
 
     if (this.amm.rateOracleID === 6) {
       // Compound
-      const cTokenAddress = await this.amm.readOnlyContracts.rateOracle.ctoken();
+
+      const rateOracleContract = this.amm.readOnlyContracts.rateOracle;
+      const cTokenAddress = await exponentialBackoff(() => rateOracleContract.ctoken());
       const cTokenContract = new ethers.Contract(cTokenAddress, CTokenABI, this.amm.provider);
 
-      const balance = await cTokenContract.callStatic.borrowBalanceCurrent(this.amm.userAddress);
-      const decimals = await cTokenContract.decimals();
+      const balance = await exponentialBackoff(() =>
+        cTokenContract.callStatic.borrowBalanceCurrent(this.amm.userAddress),
+      );
+      const decimals = await exponentialBackoff(() => cTokenContract.decimals());
       this.borrowBalance = descale(decimals)(balance);
     }
   };
@@ -86,9 +96,12 @@ export class BorrowAMM {
       return;
     }
 
-    const variableFactor = await this.amm.readOnlyContracts?.rateOracle.getVariableFactor(
-      this.amm.termStartTimestampWad,
-      this.amm.termEndTimestampWad,
+    const rateOracleContract = this.amm.readOnlyContracts?.rateOracle;
+    const variableFactor = await exponentialBackoff(() =>
+      rateOracleContract.getVariableFactor(
+        this.amm.termStartTimestampWad,
+        this.amm.termEndTimestampWad,
+      ),
     );
 
     const fixedFactor =

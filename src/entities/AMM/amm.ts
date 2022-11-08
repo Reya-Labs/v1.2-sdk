@@ -1,5 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
-
 import {
   BigNumber,
   BigNumberish,
@@ -61,21 +59,19 @@ import {
   UserRolloverWithMintArgs,
 } from '../../flows/rolloverWithMint';
 import { addSwapsToCashflowInfo } from '../../services/getAccruedCashflow';
+import { exponentialBackoff } from '../../utils/retry';
 
 // functionality that tries to fetch the eth/usd price from CoinGecko
 const geckoEthToUsd = async (coingeckoApiKey: string): Promise<number> => {
-  const noOfAttempts = 5;
-  for (let attempt = 0; attempt < noOfAttempts; attempt += 1) {
-    try {
-      const data = await axios.get(
-        `https://pro-api.coingecko.com/api/v3/simple/price?x_cg_pro_api_key=${coingeckoApiKey}&ids=ethereum&vs_currencies=usd`,
-      );
-      return data.data.ethereum.usd;
-    } catch (error) {
-      console.error(
-        `Failed to fetch ETH-USD price [attempt: ${attempt}/${noOfAttempts}]. ${error}`,
-      );
-    }
+  const query = () =>
+    axios.get(
+      `https://pro-api.coingecko.com/api/v3/simple/price?x_cg_pro_api_key=${coingeckoApiKey}&ids=ethereum&vs_currencies=usd`,
+    );
+  try {
+    const data = await exponentialBackoff(query);
+    return data.data.ethereum.usd;
+  } catch (error) {
+    console.error(`Failed to fetch ETH-USD price after exponential back-off retries. ${error}`);
   }
   return 0;
 };
@@ -209,7 +205,7 @@ export class AMM {
     // 1. Fetch read-only contracts
     const factoryContract = new ethers.Contract(this.factoryAddress, FactoryABI, this.provider);
 
-    const peripheryAddress = await factoryContract.periphery();
+    const peripheryAddress = await exponentialBackoff(() => factoryContract.periphery());
 
     this.readOnlyContracts = {
       factory: factoryContract,
@@ -225,7 +221,10 @@ export class AMM {
       if (isUndefined(this.readOnlyContracts)) {
         return 0;
       }
-      return Number(descale(18)(await this.readOnlyContracts.rateOracle.getApyFromTo(from, to)));
+      const rateOracleContract = this.readOnlyContracts.rateOracle;
+      return Number(
+        descale(18)(await exponentialBackoff(() => rateOracleContract.getApyFromTo(from, to))),
+      );
     };
 
     // 3. Load the general information of the AMM
@@ -311,7 +310,9 @@ export class AMM {
       return;
     }
 
-    const latestBlock = await this.provider.getBlock((await this.provider.getBlockNumber()) - 2);
+    const provider = this.provider;
+    const latestBlockNumber = await exponentialBackoff(() => provider.getBlockNumber());
+    const latestBlock = await exponentialBackoff(() => provider.getBlock(latestBlockNumber - 2));
     this.latestBlockTimestamp = latestBlock.timestamp;
   }
 
@@ -353,7 +354,8 @@ export class AMM {
       return;
     }
 
-    this.tick = (await this.readOnlyContracts.vamm.vammVars())[1];
+    const vammContract = this.readOnlyContracts.vamm;
+    this.tick = (await exponentialBackoff(() => vammContract.vammVars()))[1];
   };
 
   // fixed APR getter
@@ -397,9 +399,10 @@ export class AMM {
       return;
     }
 
-    const allowance = await this.readOnlyContracts.token.allowance(
-      this.userAddress,
-      this.readOnlyContracts.periphery.address,
+    const tokenContract = this.readOnlyContracts.token;
+    const peripheryAddress = this.readOnlyContracts.periphery.address;
+    const allowance = await exponentialBackoff(() =>
+      tokenContract.allowance(this.userAddress, peripheryAddress),
     );
 
     this.approval = allowance.gte(TresholdApprovalBn);
@@ -416,9 +419,12 @@ export class AMM {
       return;
     }
 
+    const provider = this.provider;
+    const userAddress = this.userAddress;
+    const tokenContract = this.readOnlyContracts.token;
     const balance = this.isETH
-      ? await this.provider.getBalance(this.userAddress)
-      : await this.readOnlyContracts.token.balanceOf(this.userAddress);
+      ? await exponentialBackoff(() => provider.getBalance(userAddress))
+      : await exponentialBackoff(() => tokenContract.balanceOf(userAddress));
 
     this.walletBalance = this.tokenDescaler(balance);
   };
@@ -435,10 +441,9 @@ export class AMM {
       return 0;
     }
 
-    const positionInformation = await this.readOnlyContracts.marginEngine.callStatic.getPosition(
-      this.userAddress,
-      tickLower,
-      tickUpper,
+    const marginEngineContract = this.readOnlyContracts.marginEngine;
+    const positionInformation = await exponentialBackoff(() =>
+      marginEngineContract.callStatic.getPosition(this.userAddress, tickLower, tickUpper),
     );
     return this.tokenDescaler(positionInformation.margin);
   };
@@ -583,10 +588,13 @@ export class AMM {
 
     if (!isUndefined(args.force) && !isUndefined(args.force.fullCollateralisation)) {
       if (args.force.fullCollateralisation) {
+        const rateOracleContract = this.readOnlyContracts.rateOracle;
         fullCollateralisation = {
-          variableFactor: await this.readOnlyContracts.rateOracle.variableFactorNoCache(
-            this.termStartTimestampWad,
-            this.termEndTimestampWad,
+          variableFactor: await exponentialBackoff(() =>
+            rateOracleContract.variableFactorNoCache(
+              this.termStartTimestampWad,
+              this.termEndTimestampWad,
+            ),
           ),
         };
       }

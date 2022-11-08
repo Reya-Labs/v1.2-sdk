@@ -6,6 +6,7 @@ import {
   DEFAULT_ADVANCED_CASHFLOW_INFO,
 } from '../../services/getAccruedCashflow';
 import { getLiquidityNotional } from '../../utils/liquidity';
+import { exponentialBackoff } from '../../utils/retry';
 import { tickToFixedRate } from '../../utils/tickHandling';
 import { Burn, Liquidation, MarginUpdate, Mint, Settlement, Swap } from '../actions';
 import { AMM } from '../AMM/amm';
@@ -181,10 +182,9 @@ export class Position {
     }
 
     // 1. Get the position information from the margin engine
-    const posInfo = await this.amm.readOnlyContracts.marginEngine.callStatic.getPosition(
-      this.owner,
-      this.tickLower,
-      this.tickUpper,
+    const marginEngineContract = this.amm.readOnlyContracts.marginEngine;
+    const posInfo = await exponentialBackoff(() =>
+      marginEngineContract.callStatic.getPosition(this.owner, this.tickLower, this.tickUpper),
     );
 
     // 2. Populate the object fields
@@ -242,21 +242,24 @@ export class Position {
     }
 
     // 2. Get the liquidation and safety threshold from the margin engine
-    const liquidationThreshold =
-      await this.amm.readOnlyContracts.marginEngine.callStatic.getPositionMarginRequirement(
+    const marginEngineContract = this.amm.readOnlyContracts.marginEngine;
+    const liquidationThreshold = await exponentialBackoff(() =>
+      marginEngineContract.callStatic.getPositionMarginRequirement(
         this.owner,
         this.tickLower,
         this.tickUpper,
         true,
-      );
+      ),
+    );
 
-    const safetyThreshold =
-      await this.amm.readOnlyContracts.marginEngine.callStatic.getPositionMarginRequirement(
+    const safetyThreshold = await exponentialBackoff(() =>
+      marginEngineContract.callStatic.getPositionMarginRequirement(
         this.owner,
         this.tickLower,
         this.tickUpper,
         false,
-      );
+      ),
+    );
 
     // 3. Populate the object field
     this.requirements = {

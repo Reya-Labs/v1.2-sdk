@@ -24,4 +24,7 @@ jobs:
       - name: Run prettier check
         run: make prettier-check
       - name: Run tests
+        env:
+          MAINNET_URL: ${{ secrets.MAINNET_URL }}
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
         run: make test 

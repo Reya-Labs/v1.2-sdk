@@ -25,8 +25,8 @@ const protocol = new Protocol({
   provider: new providers.JsonRpcProvider('http://localhost:8545'),
   lpWhitelistedAmms: whitelistedAMMs,
   traderWhitelistedAmms: whitelistedAMMs,
-  graphEndpoint: process.env.REACT_APP_SUBGRAPH_URL || '',
-  coingeckoApiKey: process.env.REACT_APP_COINGECKO_API_KEY || '',
+  graphEndpoint: process.env.SUBGRAPH_URL || '',
+  coingeckoApiKey: process.env.COINGECKO_API_KEY || '',
 });
 
 const setup = async () => {

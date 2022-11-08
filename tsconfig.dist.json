@@ -11,6 +11,6 @@
     "./dist/**/*",
     "./scripts/**/*",
     "./playground/**/*",
-    "./test/**/*",
+    "./tests/**/*",
   ]
 }

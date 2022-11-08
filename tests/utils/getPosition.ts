@@ -1,5 +1,6 @@
 import { BigNumber, providers, Signer } from 'ethers';
 import { isUndefined } from 'lodash';
+import { exponentialBackoff } from '../../src/utils/retry';
 import { Position } from '../../src/entities/Position/position';
 import { getAMM } from './getAMM';
 
@@ -34,11 +35,17 @@ export const getPosition = async ({
     feeGrowthInsideLastX128: BigNumber;
     rewardPerAmount: BigNumber;
     accumulatedFees: BigNumber;
-  } = await amm.readOnlyContracts?.marginEngine.callStatic.getPosition(
-    userAddress,
-    tickLower,
-    tickUpper,
-  );
+  } = await exponentialBackoff(() => {
+    if (amm.readOnlyContracts) {
+      return amm.readOnlyContracts.marginEngine.callStatic.getPosition(
+        userAddress,
+        tickLower,
+        tickUpper,
+      );
+    } else {
+      return (async () => undefined)();
+    }
+  });
 
   if (isUndefined(positionInfo)) {
     return;
