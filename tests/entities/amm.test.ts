@@ -1,13 +1,12 @@
 /* eslint-disable no-restricted-syntax */
 
-import { waffle } from 'hardhat';
-
 import { before, describe, it } from 'mocha';
 import { expect } from 'chai';
 
 import { Wallet } from 'ethers';
 import { isUndefined } from 'lodash';
 
+import { waffle } from 'hardhat';
 import * as mainnetPools from '../../pool-addresses/mainnet.json';
 import { getMaxAvailableNotional } from '../../src/services/getMaxAvailableNotional';
 import { getAMM } from '../utils/getAMM';
