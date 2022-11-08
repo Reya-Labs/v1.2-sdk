@@ -2,6 +2,7 @@ import { ethers, providers, Signer } from 'ethers';
 import * as dotenv from 'dotenv';
 import { BaseRateOracleABI, MarginEngineABI, VammABI } from '../../src/ABIs';
 import { AMM } from '../../src/entities/AMM/amm';
+import { exponentialBackoff } from '../../src/utils/retry';
 
 dotenv.config();
 
@@ -16,25 +17,33 @@ export const getAMM = async ({
 }): Promise<AMM> => {
   const vammContract = new ethers.Contract(vammAddress, VammABI, provider);
 
-  const marginEngineAddress = await vammContract.marginEngine();
-  const tick = (await vammContract.vammVars())[1];
-  const tickSpacing = await vammContract.tickSpacing();
+  const marginEngineAddress = await exponentialBackoff(() => vammContract.marginEngine());
+  const tick = (await exponentialBackoff(() => vammContract.vammVars()))[1];
+  const tickSpacing = await exponentialBackoff(() => vammContract.tickSpacing());
 
   const marginEngineContract = new ethers.Contract(marginEngineAddress, MarginEngineABI, provider);
 
-  const factoryAddress = await marginEngineContract.factory();
+  const factoryAddress = await exponentialBackoff(() => marginEngineContract.factory());
 
-  const rateOracleAddress = await marginEngineContract.rateOracle();
+  const rateOracleAddress = await exponentialBackoff(() => marginEngineContract.rateOracle());
 
-  const underlyingTokenAddress = await marginEngineContract.underlyingToken();
+  const underlyingTokenAddress = await exponentialBackoff(() =>
+    marginEngineContract.underlyingToken(),
+  );
 
-  const termStartTimestampWad = await marginEngineContract.termStartTimestampWad();
+  const termStartTimestampWad = await exponentialBackoff(() =>
+    marginEngineContract.termStartTimestampWad(),
+  );
 
-  const termEndTimestampWad = await marginEngineContract.termEndTimestampWad();
+  const termEndTimestampWad = await exponentialBackoff(() =>
+    marginEngineContract.termEndTimestampWad(),
+  );
 
   const rateOracleContract = new ethers.Contract(rateOracleAddress, BaseRateOracleABI, provider);
 
-  const rateOracleID = await rateOracleContract.UNDERLYING_YIELD_BEARING_PROTOCOL_ID();
+  const rateOracleID = await exponentialBackoff(() =>
+    rateOracleContract.UNDERLYING_YIELD_BEARING_PROTOCOL_ID(),
+  );
 
   const amm = new AMM({
     id: vammAddress,

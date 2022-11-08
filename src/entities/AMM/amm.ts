@@ -59,21 +59,19 @@ import {
   UserRolloverWithMintArgs,
 } from '../../flows/rolloverWithMint';
 import { addSwapsToCashflowInfo } from '../../services/getAccruedCashflow';
+import { exponentialBackoff } from '../../utils/retry';
 
 // functionality that tries to fetch the eth/usd price from CoinGecko
 const geckoEthToUsd = async (coingeckoApiKey: string): Promise<number> => {
-  const noOfAttempts = 5;
-  for (let attempt = 0; attempt < noOfAttempts; attempt += 1) {
-    try {
-      const data = await axios.get(
-        `https://pro-api.coingecko.com/api/v3/simple/price?x_cg_pro_api_key=${coingeckoApiKey}&ids=ethereum&vs_currencies=usd`,
-      );
-      return data.data.ethereum.usd;
-    } catch (error) {
-      console.error(
-        `Failed to fetch ETH-USD price [attempt: ${attempt}/${noOfAttempts}]. ${error}`,
-      );
-    }
+  const query = () =>
+    axios.get(
+      `https://pro-api.coingecko.com/api/v3/simple/price?x_cg_pro_api_key=${coingeckoApiKey}&ids=ethereum&vs_currencies=usd`,
+    );
+  try {
+    const data = await exponentialBackoff(query);
+    return data.data.ethereum.usd;
+  } catch (error) {
+    console.error(`Failed to fetch ETH-USD price after exponential back-off retries. ${error}`);
   }
   return 0;
 };
