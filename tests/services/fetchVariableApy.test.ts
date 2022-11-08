@@ -5,6 +5,7 @@ import { describe, it } from 'mocha';
 import { expect } from 'chai';
 import { fetchVariableApy } from '../../src/services/fetchVariableApy';
 import { BaseRateOracleABI } from '../../src/ABIs';
+import { exponentialBackoff } from '../../src/utils/retry';
 
 const { provider } = waffle;
 
@@ -21,8 +22,10 @@ describe('variable apy fetching', () => {
   tests.forEach(([title, rateOracleAddress, result]) => {
     it(title, async () => {
       const rateOracle = new ethers.Contract(rateOracleAddress, BaseRateOracleABI, provider);
-      const rateOracleID = await rateOracle.UNDERLYING_YIELD_BEARING_PROTOCOL_ID();
-      const tokenAddress = await rateOracle.underlying();
+      const rateOracleID = await exponentialBackoff(() =>
+        rateOracle.UNDERLYING_YIELD_BEARING_PROTOCOL_ID(),
+      );
+      const tokenAddress = await exponentialBackoff(() => rateOracle.underlying());
 
       const variableApy = await fetchVariableApy({
         rateOracle,

@@ -35,9 +35,17 @@ export const getPosition = async ({
     feeGrowthInsideLastX128: BigNumber;
     rewardPerAmount: BigNumber;
     accumulatedFees: BigNumber;
-  } = await exponentialBackoff(() =>
-    amm.readOnlyContracts?.marginEngine.callStatic.getPosition(userAddress, tickLower, tickUpper),
-  );
+  } = await exponentialBackoff(() => {
+    if (amm.readOnlyContracts) {
+      return amm.readOnlyContracts.marginEngine.callStatic.getPosition(
+        userAddress,
+        tickLower,
+        tickUpper,
+      );
+    } else {
+      return (async () => undefined)();
+    }
+  });
 
   if (isUndefined(positionInfo)) {
     return;

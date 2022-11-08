@@ -1,5 +1,6 @@
 import { BigNumber, Contract, ethers, providers } from 'ethers';
 import { AaveLendingPoolABI, CTokenABI } from '../ABIs';
+import { exponentialBackoff } from '../utils/retry';
 import { descale } from '../utils/scaling';
 
 export const fetchVariableApy = async (args: {
@@ -12,14 +13,16 @@ export const fetchVariableApy = async (args: {
     case 1: {
       // Aave Lending Rate Oracle
 
-      const lendingPoolAddress = await args.rateOracle.aaveLendingPool();
+      const lendingPoolAddress = await exponentialBackoff(() => args.rateOracle.aaveLendingPool());
       const lendingPool = new ethers.Contract(
         lendingPoolAddress,
         AaveLendingPoolABI,
         args.provider,
       );
 
-      const reservesData = await lendingPool.getReserveData(args.tokenAddress);
+      const reservesData = await exponentialBackoff(() =>
+        lendingPool.getReserveData(args.tokenAddress),
+      );
       return descale(25)(reservesData.currentLiquidityRate);
     }
 
@@ -29,10 +32,10 @@ export const fetchVariableApy = async (args: {
       const daysPerYear = 365;
       const blocksPerDay = 6570;
 
-      const cTokenAddress = await args.rateOracle.ctoken();
+      const cTokenAddress = await exponentialBackoff(() => args.rateOracle.ctoken());
       const cTokenContract = new ethers.Contract(cTokenAddress, CTokenABI, args.provider);
 
-      const ratePerBlock = await cTokenContract.supplyRatePerBlock();
+      const ratePerBlock = await exponentialBackoff(() => cTokenContract.supplyRatePerBlock());
       return ((descale(18)(ratePerBlock) * blocksPerDay + 1) ** daysPerYear - 1) * 100;
     }
 
@@ -43,25 +46,29 @@ export const fetchVariableApy = async (args: {
 
       const apyWindow = 28 * 60 * 60;
 
-      const lastBlock = await args.provider.getBlockNumber();
-      const to = BigNumber.from((await args.provider.getBlock(lastBlock - 1)).timestamp);
+      const lastBlock = await exponentialBackoff(() => args.provider.getBlockNumber());
+      const to = BigNumber.from(
+        (await exponentialBackoff(() => args.provider.getBlock(lastBlock - 1))).timestamp,
+      );
       const from = to.sub(apyWindow);
 
-      const apy = await args.rateOracle.getApyFromTo(from, to);
+      const apy = await exponentialBackoff(() => args.rateOracle.getApyFromTo(from, to));
       return descale(16)(apy);
     }
 
     case 5: {
       // Aave Borrowing Rate Oracle
 
-      const lendingPoolAddress = await args.rateOracle.aaveLendingPool();
+      const lendingPoolAddress = await exponentialBackoff(() => args.rateOracle.aaveLendingPool());
       const lendingPool = new ethers.Contract(
         lendingPoolAddress,
         AaveLendingPoolABI,
         args.provider,
       );
 
-      const reservesData = await lendingPool.getReserveData(args.tokenAddress);
+      const reservesData = await exponentialBackoff(() =>
+        lendingPool.getReserveData(args.tokenAddress),
+      );
       return descale(25)(reservesData.currentVariableBorrowRate);
     }
 
@@ -71,10 +78,10 @@ export const fetchVariableApy = async (args: {
       const daysPerYear = 365;
       const blocksPerDay = 6570;
 
-      const cTokenAddress = await args.rateOracle.ctoken();
+      const cTokenAddress = await exponentialBackoff(() => args.rateOracle.ctoken());
       const cTokenContract = new ethers.Contract(cTokenAddress, CTokenABI, args.provider);
 
-      const ratePerBlock = await cTokenContract.borrowRatePerBlock();
+      const ratePerBlock = await exponentialBackoff(() => cTokenContract.borrowRatePerBlock());
       return ((descale(18)(ratePerBlock) * blocksPerDay + 1) ** daysPerYear - 1) * 100;
     }
 
