@@ -1,6 +1,6 @@
+import { describe, it } from 'mocha';
+import { expect } from 'chai';
 import { getTicks } from '../../src/services/getTicks';
-
-jest.setTimeout(50000);
 
 describe('tick formatter', () => {
   const tests: [string, [number, [number, number]], [number, number]][] = [
@@ -13,8 +13,8 @@ describe('tick formatter', () => {
     it(title, async () => {
       const [tickLower, tickUpper] = getTicks(tickSpacing)([fixedLow, fixedHigh]);
 
-      expect(tickLower).toBeCloseTo(result[0]);
-      expect(tickUpper).toBeCloseTo(result[1]);
+      expect(tickLower).to.be.eq(result[0]);
+      expect(tickUpper).to.be.eq(result[1]);
     });
   });
 });

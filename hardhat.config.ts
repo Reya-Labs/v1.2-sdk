@@ -1,5 +1,8 @@
 import * as dotenv from 'dotenv';
 
+import '@nomiclabs/hardhat-ethers';
+import '@nomiclabs/hardhat-waffle';
+
 dotenv.config();
 
 const hardhatNetworkConfig = {

@@ -1,11 +1,11 @@
+import { describe, it } from 'mocha';
+import { expect } from 'chai';
 import { ONE_WEEK_IN_SECONDS } from '../../src/constants';
 
 import {
   addSwapsToCashflowInfo,
   DEFAULT_ADVANCED_CASHFLOW_INFO,
 } from '../../src/services/getAccruedCashflow';
-
-jest.setTimeout(50000);
 
 describe('accrued cashflow calculation', () => {
   it('no swaps', async () => {
@@ -17,15 +17,15 @@ describe('accrued cashflow calculation', () => {
       endTime: 0,
     });
 
-    expect(info.time).toBeCloseTo(0);
-    expect(info.notional).toBeCloseTo(0);
-    expect(info.avgFixedRate).toBeCloseTo(0);
-    expect(info.lockedCashflow.fixed).toBeCloseTo(0);
-    expect(info.lockedCashflow.variable).toBeCloseTo(0);
-    expect(info.accruingCashflow.fixed).toBeCloseTo(0);
-    expect(info.accruingCashflow.variable).toBeCloseTo(0);
-    expect(info.estimatedFutureCashflow(0.03).fixed).toBeCloseTo(0);
-    expect(info.estimatedFutureCashflow(0.03).variable).toBeCloseTo(0);
+    expect(info.time).to.be.closeTo(0, 0.01);
+    expect(info.notional).to.be.closeTo(0, 0.01);
+    expect(info.avgFixedRate).to.be.closeTo(0, 0.01);
+    expect(info.lockedCashflow.fixed).to.be.closeTo(0, 0.01);
+    expect(info.lockedCashflow.variable).to.be.closeTo(0, 0.01);
+    expect(info.accruingCashflow.fixed).to.be.closeTo(0, 0.01);
+    expect(info.accruingCashflow.variable).to.be.closeTo(0, 0.01);
+    expect(info.estimatedFutureCashflow(0.03).fixed).to.be.closeTo(0, 0.01);
+    expect(info.estimatedFutureCashflow(0.03).variable).to.be.closeTo(0, 0.01);
   });
 
   it('one swap (current < end)', async () => {
@@ -43,15 +43,21 @@ describe('accrued cashflow calculation', () => {
       endTime: 3 * ONE_WEEK_IN_SECONDS,
     });
 
-    expect(info.time).toBeCloseTo(ONE_WEEK_IN_SECONDS);
-    expect(info.notional).toBeCloseTo(1000);
-    expect(info.avgFixedRate).toBeCloseTo(0.02);
-    expect(info.lockedCashflow.fixed).toBeCloseTo(0);
-    expect(info.lockedCashflow.variable).toBeCloseTo(0);
-    expect(info.accruingCashflow.fixed).toBeCloseTo(((-1000 * 7) / 365) * 0.02);
-    expect(info.accruingCashflow.variable).toBeCloseTo(((1000 * 7) / 365) * 0.03);
-    expect(info.estimatedFutureCashflow(0.03).fixed).toBeCloseTo(((-1000 * 7) / 365) * 0.02);
-    expect(info.estimatedFutureCashflow(0.03).variable).toBeCloseTo(((1000 * 7) / 365) * 0.03);
+    expect(info.time).to.be.eq(ONE_WEEK_IN_SECONDS);
+    expect(info.notional).to.be.closeTo(1000, 0.01);
+    expect(info.avgFixedRate).to.be.closeTo(0.02, 0.01);
+    expect(info.lockedCashflow.fixed).to.be.closeTo(0, 0.01);
+    expect(info.lockedCashflow.variable).to.be.closeTo(0, 0.01);
+    expect(info.accruingCashflow.fixed).to.be.closeTo(((-1000 * 7) / 365) * 0.02, 0.01);
+    expect(info.accruingCashflow.variable).to.be.closeTo(((1000 * 7) / 365) * 0.03, 0.01);
+    expect(info.estimatedFutureCashflow(0.03).fixed).to.be.closeTo(
+      ((-1000 * 7) / 365) * 0.02,
+      0.01,
+    );
+    expect(info.estimatedFutureCashflow(0.03).variable).to.be.closeTo(
+      ((1000 * 7) / 365) * 0.03,
+      0.01,
+    );
   });
 
   it('one swap (current > end)', async () => {
@@ -69,15 +75,15 @@ describe('accrued cashflow calculation', () => {
       endTime: 3 * ONE_WEEK_IN_SECONDS,
     });
 
-    expect(info.time).toBeCloseTo(ONE_WEEK_IN_SECONDS);
-    expect(info.notional).toBeCloseTo(1000);
-    expect(info.avgFixedRate).toBeCloseTo(0.02);
-    expect(info.lockedCashflow.fixed).toBeCloseTo(0);
-    expect(info.lockedCashflow.variable).toBeCloseTo(0);
-    expect(info.accruingCashflow.fixed).toBeCloseTo(((-1000 * 14) / 365) * 0.02);
-    expect(info.accruingCashflow.variable).toBeCloseTo(((1000 * 14) / 365) * 0.03);
-    expect(info.estimatedFutureCashflow(0.03).fixed).toBeCloseTo(0);
-    expect(info.estimatedFutureCashflow(0.03).variable).toBeCloseTo(0);
+    expect(info.time).to.be.eq(ONE_WEEK_IN_SECONDS);
+    expect(info.notional).to.be.closeTo(1000, 0.01);
+    expect(info.avgFixedRate).to.be.closeTo(0.02, 0.01);
+    expect(info.lockedCashflow.fixed).to.be.closeTo(0, 0.01);
+    expect(info.lockedCashflow.variable).to.be.closeTo(0, 0.01);
+    expect(info.accruingCashflow.fixed).to.be.closeTo(((-1000 * 14) / 365) * 0.02, 0.01);
+    expect(info.accruingCashflow.variable).to.be.closeTo(((1000 * 14) / 365) * 0.03, 0.01);
+    expect(info.estimatedFutureCashflow(0.03).fixed).to.be.closeTo(0, 0.01);
+    expect(info.estimatedFutureCashflow(0.03).variable).to.be.closeTo(0, 0.01);
   });
 
   it('two VT swaps', async () => {
@@ -100,15 +106,21 @@ describe('accrued cashflow calculation', () => {
       endTime: 4 * ONE_WEEK_IN_SECONDS,
     });
 
-    expect(info.time).toBeCloseTo(2 * ONE_WEEK_IN_SECONDS);
-    expect(info.notional).toBeCloseTo(2000);
-    expect(info.avgFixedRate).toBeCloseTo(0.0225);
-    expect(info.lockedCashflow.fixed).toBeCloseTo(((-1000 * 7) / 365) * 0.02);
-    expect(info.lockedCashflow.variable).toBeCloseTo(((1000 * 7) / 365) * 0.03);
-    expect(info.accruingCashflow.fixed).toBeCloseTo(((-2000 * 7) / 365) * 0.0225);
-    expect(info.accruingCashflow.variable).toBeCloseTo(((2000 * 7) / 365) * 0.03);
-    expect(info.estimatedFutureCashflow(0.03).fixed).toBeCloseTo(((-2000 * 7) / 365) * 0.0225);
-    expect(info.estimatedFutureCashflow(0.03).variable).toBeCloseTo(((2000 * 7) / 365) * 0.03);
+    expect(info.time).to.be.closeTo(2 * ONE_WEEK_IN_SECONDS, 0.01);
+    expect(info.notional).to.be.closeTo(2000, 0.01);
+    expect(info.avgFixedRate).to.be.closeTo(0.0225, 0.01);
+    expect(info.lockedCashflow.fixed).to.be.closeTo(((-1000 * 7) / 365) * 0.02, 0.01);
+    expect(info.lockedCashflow.variable).to.be.closeTo(((1000 * 7) / 365) * 0.03, 0.01);
+    expect(info.accruingCashflow.fixed).to.be.closeTo(((-2000 * 7) / 365) * 0.0225, 0.01);
+    expect(info.accruingCashflow.variable).to.be.closeTo(((2000 * 7) / 365) * 0.03, 0.01);
+    expect(info.estimatedFutureCashflow(0.03).fixed).to.be.closeTo(
+      ((-2000 * 7) / 365) * 0.0225,
+      0.01,
+    );
+    expect(info.estimatedFutureCashflow(0.03).variable).to.be.closeTo(
+      ((2000 * 7) / 365) * 0.03,
+      0.01,
+    );
   });
 
   it('two FT swaps', async () => {
@@ -131,15 +143,21 @@ describe('accrued cashflow calculation', () => {
       endTime: 4 * ONE_WEEK_IN_SECONDS,
     });
 
-    expect(info.time).toBeCloseTo(2 * ONE_WEEK_IN_SECONDS);
-    expect(info.notional).toBeCloseTo(-2000);
-    expect(info.avgFixedRate).toBeCloseTo(0.0225);
-    expect(info.lockedCashflow.fixed).toBeCloseTo(((1000 * 7) / 365) * 0.02);
-    expect(info.lockedCashflow.variable).toBeCloseTo(((-1000 * 7) / 365) * 0.03);
-    expect(info.accruingCashflow.fixed).toBeCloseTo(((2000 * 7) / 365) * 0.0225);
-    expect(info.accruingCashflow.variable).toBeCloseTo(((-2000 * 7) / 365) * 0.03);
-    expect(info.estimatedFutureCashflow(0.03).fixed).toBeCloseTo(((2000 * 7) / 365) * 0.0225);
-    expect(info.estimatedFutureCashflow(0.03).variable).toBeCloseTo(((-2000 * 7) / 365) * 0.03);
+    expect(info.time).to.be.eq(2 * ONE_WEEK_IN_SECONDS);
+    expect(info.notional).to.be.closeTo(-2000, 0.01);
+    expect(info.avgFixedRate).to.be.closeTo(0.0225, 0.01);
+    expect(info.lockedCashflow.fixed).to.be.closeTo(((1000 * 7) / 365) * 0.02, 0.01);
+    expect(info.lockedCashflow.variable).to.be.closeTo(((-1000 * 7) / 365) * 0.03, 0.01);
+    expect(info.accruingCashflow.fixed).to.be.closeTo(((2000 * 7) / 365) * 0.0225, 0.01);
+    expect(info.accruingCashflow.variable).to.be.closeTo(((-2000 * 7) / 365) * 0.03, 0.01);
+    expect(info.estimatedFutureCashflow(0.03).fixed).to.be.closeTo(
+      ((2000 * 7) / 365) * 0.0225,
+      0.01,
+    );
+    expect(info.estimatedFutureCashflow(0.03).variable).to.be.closeTo(
+      ((-2000 * 7) / 365) * 0.03,
+      0.01,
+    );
   });
 
   it('one VT, one partial unwind', async () => {
@@ -162,17 +180,21 @@ describe('accrued cashflow calculation', () => {
       endTime: 4 * ONE_WEEK_IN_SECONDS,
     });
 
-    expect(info.time).toBeCloseTo(ONE_WEEK_IN_SECONDS);
-    expect(info.notional).toBeCloseTo(500);
-    expect(info.avgFixedRate).toBeCloseTo(0.02);
-    expect(info.lockedCashflow.fixed).toBeCloseTo(
+    expect(info.time).to.be.eq(ONE_WEEK_IN_SECONDS);
+    expect(info.notional).to.be.closeTo(500, 0.01);
+    expect(info.avgFixedRate).to.be.closeTo(0.02, 0.01);
+    expect(info.lockedCashflow.fixed).to.be.closeTo(
       ((-500 * 7) / 365) * 0.02 + (500 * 0.005 * 14) / 365,
+      0.01,
     );
-    expect(info.lockedCashflow.variable).toBeCloseTo(((500 * 7) / 365) * 0.03);
-    expect(info.accruingCashflow.fixed).toBeCloseTo(((-500 * 14) / 365) * 0.02);
-    expect(info.accruingCashflow.variable).toBeCloseTo(((500 * 14) / 365) * 0.03);
-    expect(info.estimatedFutureCashflow(0.03).fixed).toBeCloseTo(((-500 * 7) / 365) * 0.02);
-    expect(info.estimatedFutureCashflow(0.03).variable).toBeCloseTo(((500 * 7) / 365) * 0.03);
+    expect(info.lockedCashflow.variable).to.be.closeTo(((500 * 7) / 365) * 0.03, 0.01);
+    expect(info.accruingCashflow.fixed).to.be.closeTo(((-500 * 14) / 365) * 0.02, 0.01);
+    expect(info.accruingCashflow.variable).to.be.closeTo(((500 * 14) / 365) * 0.03, 0.01);
+    expect(info.estimatedFutureCashflow(0.03).fixed).to.be.closeTo(((-500 * 7) / 365) * 0.02, 0.01);
+    expect(info.estimatedFutureCashflow(0.03).variable).to.be.closeTo(
+      ((500 * 7) / 365) * 0.03,
+      0.01,
+    );
   });
 
   it('one VT, one bigger FT', async () => {
@@ -195,17 +217,21 @@ describe('accrued cashflow calculation', () => {
       endTime: 4 * ONE_WEEK_IN_SECONDS,
     });
 
-    expect(info.time).toBeCloseTo(2 * ONE_WEEK_IN_SECONDS);
-    expect(info.notional).toBeCloseTo(-500);
-    expect(info.avgFixedRate).toBeCloseTo(0.025);
-    expect(info.lockedCashflow.fixed).toBeCloseTo(
+    expect(info.time).to.be.eq(2 * ONE_WEEK_IN_SECONDS);
+    expect(info.notional).to.be.closeTo(-500, 0.01);
+    expect(info.avgFixedRate).to.be.closeTo(0.025, 0.01);
+    expect(info.lockedCashflow.fixed).to.be.closeTo(
       ((-1000 * 7) / 365) * 0.02 + (1000 * 0.005 * 14) / 365,
+      0.01,
     );
-    expect(info.lockedCashflow.variable).toBeCloseTo(((1000 * 7) / 365) * 0.03);
-    expect(info.accruingCashflow.fixed).toBeCloseTo(((500 * 7) / 365) * 0.025);
-    expect(info.accruingCashflow.variable).toBeCloseTo(((-500 * 7) / 365) * 0.03);
-    expect(info.estimatedFutureCashflow(0.03).fixed).toBeCloseTo(((500 * 7) / 365) * 0.025);
-    expect(info.estimatedFutureCashflow(0.03).variable).toBeCloseTo(((-500 * 7) / 365) * 0.03);
+    expect(info.lockedCashflow.variable).to.be.closeTo(((1000 * 7) / 365) * 0.03, 0.01);
+    expect(info.accruingCashflow.fixed).to.be.closeTo(((500 * 7) / 365) * 0.025, 0.01);
+    expect(info.accruingCashflow.variable).to.be.closeTo(((-500 * 7) / 365) * 0.03, 0.01);
+    expect(info.estimatedFutureCashflow(0.03).fixed).to.be.closeTo(((500 * 7) / 365) * 0.025, 0.01);
+    expect(info.estimatedFutureCashflow(0.03).variable).to.be.closeTo(
+      ((-500 * 7) / 365) * 0.03,
+      0.01,
+    );
   });
 
   it('one FT, one partial unwind', async () => {
@@ -228,17 +254,21 @@ describe('accrued cashflow calculation', () => {
       endTime: 4 * ONE_WEEK_IN_SECONDS,
     });
 
-    expect(info.time).toBeCloseTo(ONE_WEEK_IN_SECONDS);
-    expect(info.notional).toBeCloseTo(-500);
-    expect(info.avgFixedRate).toBeCloseTo(0.02);
-    expect(info.lockedCashflow.fixed).toBeCloseTo(
+    expect(info.time).to.be.eq(ONE_WEEK_IN_SECONDS);
+    expect(info.notional).to.be.closeTo(-500, 0.01);
+    expect(info.avgFixedRate).to.be.closeTo(0.02, 0.01);
+    expect(info.lockedCashflow.fixed).to.be.closeTo(
       ((500 * 7) / 365) * 0.02 + (-500 * 0.005 * 14) / 365,
+      0.01,
     );
-    expect(info.lockedCashflow.variable).toBeCloseTo(((-500 * 7) / 365) * 0.03);
-    expect(info.accruingCashflow.fixed).toBeCloseTo(((500 * 14) / 365) * 0.02);
-    expect(info.accruingCashflow.variable).toBeCloseTo(((-500 * 14) / 365) * 0.03);
-    expect(info.estimatedFutureCashflow(0.03).fixed).toBeCloseTo(((500 * 7) / 365) * 0.02);
-    expect(info.estimatedFutureCashflow(0.03).variable).toBeCloseTo(((-500 * 7) / 365) * 0.03);
+    expect(info.lockedCashflow.variable).to.be.closeTo(((-500 * 7) / 365) * 0.03, 0.01);
+    expect(info.accruingCashflow.fixed).to.be.closeTo(((500 * 14) / 365) * 0.02, 0.01);
+    expect(info.accruingCashflow.variable).to.be.closeTo(((-500 * 14) / 365) * 0.03, 0.01);
+    expect(info.estimatedFutureCashflow(0.03).fixed).to.be.closeTo(((500 * 7) / 365) * 0.02, 0.01);
+    expect(info.estimatedFutureCashflow(0.03).variable).to.be.closeTo(
+      ((-500 * 7) / 365) * 0.03,
+      0.01,
+    );
   });
 
   it('one FT, one bigger VT', async () => {
@@ -261,16 +291,23 @@ describe('accrued cashflow calculation', () => {
       endTime: 4 * ONE_WEEK_IN_SECONDS,
     });
 
-    expect(info.time).toBeCloseTo(2 * ONE_WEEK_IN_SECONDS);
-    expect(info.notional).toBeCloseTo(500);
-    expect(info.avgFixedRate).toBeCloseTo(0.025);
-    expect(info.lockedCashflow.fixed).toBeCloseTo(
+    expect(info.time).to.be.eq(2 * ONE_WEEK_IN_SECONDS);
+    expect(info.notional).to.be.closeTo(500, 0.01);
+    expect(info.avgFixedRate).to.be.closeTo(0.025, 0.01);
+    expect(info.lockedCashflow.fixed).to.be.closeTo(
       ((1000 * 7) / 365) * 0.02 + (-1000 * 0.005 * 14) / 365,
+      0.01,
     );
-    expect(info.lockedCashflow.variable).toBeCloseTo(((-1000 * 7) / 365) * 0.03);
-    expect(info.accruingCashflow.fixed).toBeCloseTo(((-500 * 7) / 365) * 0.025);
-    expect(info.accruingCashflow.variable).toBeCloseTo(((500 * 7) / 365) * 0.03);
-    expect(info.estimatedFutureCashflow(0.03).fixed).toBeCloseTo(((-500 * 7) / 365) * 0.025);
-    expect(info.estimatedFutureCashflow(0.03).variable).toBeCloseTo(((500 * 7) / 365) * 0.03);
+    expect(info.lockedCashflow.variable).to.be.closeTo(((-1000 * 7) / 365) * 0.03, 0.01);
+    expect(info.accruingCashflow.fixed).to.be.closeTo(((-500 * 7) / 365) * 0.025, 0.01);
+    expect(info.accruingCashflow.variable).to.be.closeTo(((500 * 7) / 365) * 0.03, 0.01);
+    expect(info.estimatedFutureCashflow(0.03).fixed).to.be.closeTo(
+      ((-500 * 7) / 365) * 0.025,
+      0.01,
+    );
+    expect(info.estimatedFutureCashflow(0.03).variable).to.be.closeTo(
+      ((500 * 7) / 365) * 0.03,
+      0.01,
+    );
   });
 });

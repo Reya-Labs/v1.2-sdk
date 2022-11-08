@@ -1,7 +1,7 @@
 import { BigNumber } from 'ethers';
+import { describe, it } from 'mocha';
+import { expect } from 'chai';
 import { getAvgFixedRate } from '../../src/services/getAvgFixedRate';
-
-jest.setTimeout(50000);
 
 describe('average fixed rate calculator', () => {
   const tests: [string, [BigNumber, BigNumber], number][] = [
@@ -17,7 +17,7 @@ describe('average fixed rate calculator', () => {
     it(title, async () => {
       const avgFixedRate = getAvgFixedRate(unbalancedFixedTokens, variableTokens);
 
-      expect(avgFixedRate).toBeCloseTo(result);
+      expect(avgFixedRate).to.be.closeTo(result, 0.01);
     });
   });
 });

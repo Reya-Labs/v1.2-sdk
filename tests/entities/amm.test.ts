@@ -1,7 +1,11 @@
 /* eslint-disable no-restricted-syntax */
 
-import { providers, Wallet } from 'ethers';
-import * as dotenv from 'dotenv';
+import { waffle } from 'hardhat';
+
+import { before, describe, it } from 'mocha';
+import { expect } from 'chai';
+
+import { Wallet } from 'ethers';
 import { isUndefined } from 'lodash';
 
 import * as mainnetPools from '../../pool-addresses/mainnet.json';
@@ -10,26 +14,17 @@ import { getAMM } from '../utils/getAMM';
 import { fail } from '../utils/utils';
 import { AMM } from '../../src/entities/AMM/amm';
 
-dotenv.config();
-jest.setTimeout(50000);
-
-// LEFT TO TEST:
-//    - settlement
-//    - rollover with swap
-//    - rollover with mint
-
-// tests specific to mainnet @ block ...
+const { provider } = waffle;
 
 describe('amm', () => {
   const POOLS = ['aUSDC_v3', 'cDAI_v3', 'stETH_v1', 'rETH_v1'];
-  const provider = new providers.JsonRpcProvider('http://localhost:8545');
   const signer = new Wallet(
     '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
     provider,
   ); // at address - 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
   const amms = new Map<string, AMM>();
 
-  beforeAll(async () => {
+  before(async () => {
     for (const poolName of POOLS) {
       const item = mainnetPools[poolName as keyof typeof mainnetPools];
       const amm = await getAMM({
@@ -52,10 +47,10 @@ describe('amm', () => {
 
       const item = mainnetPools[poolName as keyof typeof mainnetPools];
 
-      expect(amm.readOnlyContracts?.marginEngine.address).toBe(item.marginEngine);
-      expect(amm.tokenDecimals).toBe(item.decimals);
-      expect(amm.rateOracleID).toBe(item.rateOracleID);
-      expect(amm.userAddress).toBe('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266');
+      expect(amm.readOnlyContracts?.marginEngine.address).to.be.eq(item.marginEngine);
+      expect(amm.tokenDecimals).to.be.eq(item.decimals);
+      expect(amm.rateOracleID).to.be.eq(item.rateOracleID);
+      expect(amm.userAddress).to.be.eq('0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266');
     });
   });
 
@@ -68,7 +63,7 @@ describe('amm', () => {
       }
 
       await amm.approve();
-      expect(amm.approval).toBe(true);
+      expect(amm.approval).to.be.eq(true);
     });
   });
 
@@ -90,17 +85,17 @@ describe('amm', () => {
     const swapInfo0 = await amm.getSwapInfo(swapArgs);
     const balance0 = amm.walletBalance;
 
-    expect(swapInfo0?.availableNotional).toBe(10);
+    expect(swapInfo0?.availableNotional).to.be.eq(10);
 
     await amm.swap(swapArgs);
 
     const swapInfo1 = await amm.getSwapInfo(swapArgs);
     const balance1 = amm.walletBalance;
 
-    expect(swapInfo1?.maxAvailableNotional).toBe(
+    expect(swapInfo1?.maxAvailableNotional).to.be.eq(
       (swapInfo0?.maxAvailableNotional ?? 0) - swapArgs.notional,
     );
-    expect(balance1).toBeLessThanOrEqual((balance0 ?? 0) - swapArgs.margin);
+    expect(balance1).to.be.lessThanOrEqual((balance0 ?? 0) - swapArgs.margin);
   });
 
   it('swap - full collateralisation', async () => {
@@ -121,7 +116,7 @@ describe('amm', () => {
     const swapInfo0 = await amm.getSwapInfo(swapArgs);
     const balance0 = amm.walletBalance;
 
-    expect(swapInfo0?.availableNotional).toBe(10);
+    expect(swapInfo0?.availableNotional).to.be.eq(10);
 
     await amm.swap({
       ...swapArgs,
@@ -133,10 +128,10 @@ describe('amm', () => {
     const swapInfo1 = await amm.getSwapInfo(swapArgs);
     const balance1 = amm.walletBalance;
 
-    expect(swapInfo1?.maxAvailableNotional).toBe(
+    expect(swapInfo1?.maxAvailableNotional).to.be.eq(
       (swapInfo0?.maxAvailableNotional ?? 0) - swapArgs.notional,
     );
-    expect(balance1).toBeLessThanOrEqual((balance0 ?? 0) - swapArgs.margin);
+    expect(balance1).to.be.lessThanOrEqual((balance0 ?? 0) - swapArgs.margin);
   });
 
   it('mint', async () => {
@@ -155,7 +150,7 @@ describe('amm', () => {
     };
 
     if (isUndefined(amm.readOnlyContracts)) {
-      expect(true).toBe(false);
+      expect(true).to.be.eq(false);
       return;
     }
 
@@ -185,8 +180,8 @@ describe('amm', () => {
     const balance1 = amm.walletBalance;
 
     // checks
-    expect(availableFT1).toBe(availableFT0 + 10);
-    expect(balance1).toBeLessThanOrEqual((balance0 ?? 0) - mintArgs.margin);
+    expect(availableFT1).to.be.eq(availableFT0 + 10);
+    expect(balance1).to.be.lessThanOrEqual((balance0 ?? 0) - mintArgs.margin);
   });
 
   it('burn', async () => {
@@ -205,7 +200,7 @@ describe('amm', () => {
     };
 
     if (isUndefined(amm.readOnlyContracts)) {
-      expect(true).toBe(false);
+      expect(true).to.be.eq(false);
       return;
     }
 
@@ -235,8 +230,8 @@ describe('amm', () => {
     const balance1 = amm.walletBalance;
 
     // checks
-    expect(availableFT1).toBe(availableFT0 - 10);
-    expect(balance1).toBeLessThanOrEqual((balance0 ?? 0) - burnArgs.margin);
+    expect(availableFT1).to.be.eq(availableFT0 - 10);
+    expect(balance1).to.be.lessThanOrEqual((balance0 ?? 0) - burnArgs.margin);
   });
 
   it('update margin', async () => {
@@ -253,7 +248,7 @@ describe('amm', () => {
     };
 
     if (isUndefined(amm.readOnlyContracts)) {
-      expect(true).toBe(false);
+      expect(true).to.be.eq(false);
       return;
     }
 
@@ -267,7 +262,7 @@ describe('amm', () => {
     const balance1 = amm.walletBalance;
 
     // checks
-    expect(balance1).toBeLessThanOrEqual((balance0 ?? 0) - updateMarginArgs.margin);
+    expect(balance1).to.be.lessThanOrEqual((balance0 ?? 0) - updateMarginArgs.margin);
   });
 
   it('attemp to settle', async () => {
@@ -282,7 +277,12 @@ describe('amm', () => {
       fixedHigh: 4,
     };
 
-    await expect(amm.settle(settleArgs)).rejects.toEqual(Error('Cannot settle before maturity'));
+    try {
+      await amm.settle(settleArgs);
+      fail();
+    } catch (error) {
+      expect((error as Error).message).to.be.eq('Cannot settle before maturity');
+    }
   });
 
   it('attemp to rollover with mint', async () => {
@@ -305,9 +305,12 @@ describe('amm', () => {
       previousFixedHigh: 4,
     };
 
-    await expect(amm.rolloverWithMint(rolloverWithMintArgs)).rejects.toEqual(
-      Error('Cannot settle before maturity'),
-    );
+    try {
+      await amm.rolloverWithMint(rolloverWithMintArgs);
+      fail();
+    } catch (error) {
+      expect((error as Error).message).to.be.eq('Cannot settle before maturity');
+    }
   });
 
   it('attemp to rollover with swap', async () => {
@@ -330,8 +333,11 @@ describe('amm', () => {
       previousFixedHigh: 4,
     };
 
-    await expect(amm.rolloverWithSwap(rolloverWithSwapArgs)).rejects.toEqual(
-      Error('Cannot settle before maturity'),
-    );
+    try {
+      await amm.rolloverWithSwap(rolloverWithSwapArgs);
+      fail();
+    } catch (error) {
+      expect((error as Error).message).to.be.eq('Cannot settle before maturity');
+    }
   });
 });

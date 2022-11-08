@@ -1,6 +1,6 @@
+import { describe, it } from 'mocha';
+import { expect } from 'chai';
 import { getSlippage } from '../../src/services/getSlippage';
-
-jest.setTimeout(50000);
 
 describe('slippage calculator', () => {
   const tests: [string, [number, number], number][] = [
@@ -17,7 +17,7 @@ describe('slippage calculator', () => {
     it(title, async () => {
       const slippage = getSlippage(tickLower, tickUpper);
 
-      expect(slippage).toBeCloseTo(result);
+      expect(slippage).to.be.closeTo(result, 0.01);
     });
   });
 });
