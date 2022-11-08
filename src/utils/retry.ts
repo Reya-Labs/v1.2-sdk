@@ -34,7 +34,7 @@ export const exponentialBackoff = async <T = any>(
       }
     }
 
-    delay(waitingTime + getRandomNumber(100));
+    await delay(waitingTime + getRandomNumber(100));
     waitingTime *= 2;
   }
 
