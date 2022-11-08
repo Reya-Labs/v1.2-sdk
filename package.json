@@ -20,9 +20,7 @@
     "build-release": "tsc -p tsconfig.dist.json",
     "test": "jest",
     "test:watch": "jest --watch",
-    "release": "semantic-release",
-    "irs-setup": "ts-node scripts/setup.ts",
-    "decode-error": "ts-node src/utils/errors/decodeError.ts"
+    "release": "semantic-release"
   },
   "devDependencies": {
     "@commitlint/cli": "^13.1.0",
