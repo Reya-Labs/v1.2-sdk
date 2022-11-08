@@ -12,5 +12,6 @@
     "./scripts/**/*",
     "./playground/**/*",
     "./tests/**/*",
+    "./hardhat.config.ts"
   ]
 }
