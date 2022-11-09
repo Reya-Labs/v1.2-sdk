@@ -1,6 +1,6 @@
 {
   "name": "@voltz-protocol/v2-sdk",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "A TypeScript wrapper for the Voltz smart contract",
   "main": "dist/index.js",
   "types": "dist/types",
