@@ -86,7 +86,7 @@
   },
   "release": {
     "branches": [
-      "master"
+      "main"
     ],
     "plugins": [
       "@semantic-release/commit-analyzer",
@@ -96,8 +96,7 @@
         "@semantic-release/git",
         {
           "assets": [
-            "dist/**/*.{js,css}",
-            "docs",
+            "dist/**/*.{js}",
             "package.json"
           ],
           "message": "chore: Release ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
