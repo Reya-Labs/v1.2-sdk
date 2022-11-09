@@ -1,13 +1,16 @@
 #!/bin/sh
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
-REGEX="^(develop|main|staging|((feat|fix|docs|chore|refactor|test)\/.+))$"
 
-if ! [[ $BRANCH =~ $REGEX ]]; then
-  echo "Your commit was rejected due to branching name"
-  echo "Please rename your branch with $REGEX syntax"
-  echo "Required prefix can be one of: feat|fix|docs|chore|refactor|test"
-  exit 1
+if [[ "$BRANCH" != "main" ]]; then
+  REGEX="^(develop|main|staging|((feat|fix|docs|chore|refactor|test)\/.+))$"
+
+  if ! [[ $BRANCH =~ $REGEX ]]; then
+    echo "Your commit was rejected due to branching name"
+    echo "Please rename your branch with $REGEX syntax"
+    echo "Required prefix can be one of: feat|fix|docs|chore|refactor|test"
+    exit 1
+  fi
 fi
 
 . "$(dirname "$0")/_/husky.sh"
