@@ -20,7 +20,7 @@
     "build-release": "tsc -p tsconfig.dist.json",
     "ts:check": "tsc --noEmit",
     "test": "npx hardhat test",
-    "release": "semantic-release"
+    "release": "CI=true semantic-release"
   },
   "devDependencies": {
     "@commitlint/cli": "^13.1.0",
