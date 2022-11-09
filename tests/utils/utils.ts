@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import * as mainnetPools from '../../pool-addresses/mainnet.json';
 
 export const mapPoolNamesToIDs = (names: string[]): string[] => {
@@ -8,5 +9,5 @@ export const mapPoolNamesToIDs = (names: string[]): string[] => {
 };
 
 export const fail = (): void => {
-  expect(true).toEqual(false);
+  expect(true).to.be.eq(false);
 };
