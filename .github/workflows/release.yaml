@@ -2,7 +2,7 @@ name: Release
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   release:
     name: Release
@@ -19,12 +19,21 @@ jobs:
           node-version: 'lts/*'
       - name: Install dependencies
         run: make install-ci
+      - name: Eslint check
+        run: make eslint-check
+      - name: Prettier check
+        run: make prettier-check
+      - name: Typescript check
+        run: make ts-check
       - name: Run tests
+        env:
+          MAINNET_URL: ${{ secrets.MAINNET_URL }}
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
         run: make test
       - name: Build release
         run: make build-release
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_PUBLISHING_TOKEN }}
         run: make release

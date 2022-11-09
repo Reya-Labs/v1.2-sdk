@@ -10,6 +10,9 @@ eslint-check:
 prettier-check:
 	yarn prettier:check
 
+ts-check:
+	yarn ts:check
+
 test:
 	yarn test
 
