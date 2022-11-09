@@ -24,4 +24,4 @@ build-release:
 	yarn build-release
 
 release:
-	yarn release
+	HUSKY=0 yarn release
