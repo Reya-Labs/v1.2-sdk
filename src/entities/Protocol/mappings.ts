@@ -1,6 +1,6 @@
 import { BigNumber, providers } from 'ethers';
 import { isUndefined } from 'lodash';
-import { GetGraphAMMsResponse } from '../../../graph-queries/amms';
+import { GetGraphAMMsResponse } from '../../graph-queries/amms';
 import {
   BurnGraphResponse,
   GetGraphPositionsResponse,
@@ -9,7 +9,7 @@ import {
   MintGraphResponse,
   SettlementGraphResponse,
   SwapGraphResponse,
-} from '../../../graph-queries/positions';
+} from '../../graph-queries/positions';
 import { getLiquidityNotional } from '../../utils/liquidity';
 import { Mint, Burn, Swap, MarginUpdate, Liquidation, Settlement } from '../actions';
 import { AMM } from '../AMM/amm';

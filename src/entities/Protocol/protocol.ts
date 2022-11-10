@@ -2,8 +2,8 @@ import { providers, Signer } from 'ethers';
 import { BorrowAMM } from '../BorrowAMM/borrowAMM';
 import { Position } from '../Position/position';
 import { AMM } from '../AMM/amm';
-import { getGraphAMMs } from '../../../graph-queries/amms';
-import { getGraphPositions } from '../../../graph-queries/positions';
+import { getGraphAMMs } from '../../graph-queries/amms';
+import { getGraphPositions } from '../../graph-queries/positions';
 
 import { graphAMMsResponseToAMMs, graphPositionsResponseToPositions } from './mappings';
 
