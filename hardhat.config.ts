@@ -1,3 +1,5 @@
+/* eslint-disable import/no-extraneous-dependencies */
+
 import * as dotenv from 'dotenv';
 
 import '@nomiclabs/hardhat-ethers';

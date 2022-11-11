@@ -131,7 +131,7 @@ export class Protocol {
 
     // 8. Build the Borrow Amms around the current Amms
     this.borrowAmms = this.amms
-      .filter((amm) => amm.rateOracleID === 5 || amm.rateOracleID === 6)
+      .filter((amm) => amm.isBorrowing)
       .map((amm) => {
         return new BorrowAMM({
           id: amm.id,

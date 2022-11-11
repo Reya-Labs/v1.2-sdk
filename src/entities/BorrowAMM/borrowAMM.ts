@@ -23,7 +23,7 @@ export class BorrowAMM {
     this.id = id;
     this.amm = amm;
 
-    if (!(this.amm.rateOracleID === 5 || this.amm.rateOracleID === 6)) {
+    if (!this.amm.isBorrowing) {
       throw new Error('This pool is not on a borrow market');
     }
   }

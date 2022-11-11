@@ -343,6 +343,11 @@ export class AMM {
     return `${prefix}${this.tokenName}`;
   }
 
+  // borrowing flag
+  public get isBorrowing(): boolean {
+    return this.rateOracleID === 5 || this.rateOracleID === 6;
+  }
+
   // get value of the underlying token in USD
   public getAmountInUSD(amount: number): number {
     return this.priceInUsd * amount;
