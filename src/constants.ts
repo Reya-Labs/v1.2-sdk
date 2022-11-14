@@ -8,32 +8,18 @@ export const TresholdApprovalBn = BigNumber.from(
   '6277101735386680763835789423207666416102355444464034512896',
 );
 
-export const ADDRESS_ZERO = '0x0000000000000000000000000000000000000000';
+export const MIN_TICK = -69100; // min tick that could be used on any pool
+export const MAX_TICK = 69100; // max tick that could be used on any pool
 
-/**
- * The minimum tick that can be used on any pool.
- */
-export const MIN_TICK = -69100;
-/**
- * The maximum tick that can be used on any pool.
- */
-export const MAX_TICK = 69100;
-
-/**
- * The minimum tick that can be used on any pool.
- */
-export const MIN_FIXED_RATE = 0.001;
-/**
- * The maximum tick that can be used on any pool.
- */
-export const MAX_FIXED_RATE = 1001;
+export const MIN_FIXED_RATE = 0.001; // min fixed rate that could be used on any pool
+export const MAX_FIXED_RATE = 1001; // max fixed rate that could be used on any pool
 
 export const ONE_DAY_IN_SECONDS = 86400;
-
 export const ONE_WEEK_IN_SECONDS = 604800;
-
 export const ONE_YEAR_IN_SECONDS = 31536000;
 
 export const ZERO_BN = BigNumber.from(0);
-
 export const WAD = BigNumber.from(10).pow(18);
+
+export const TRADER_TICKS = [-69060, 0];
+export const BORROWER_TICKS = [-69000, 69060];

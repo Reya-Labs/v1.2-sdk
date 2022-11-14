@@ -31,16 +31,16 @@ const protocol = new Protocol({
 
 const setup = async () => {
   await protocol.onLand();
-  if (!(protocol.allPools.length === 10)) {
+  if (!(protocol.getAMMs().length === 10)) {
     throw new Error('Pools have not been initialized.');
   }
 
   await protocol.onConnect('0xF8F6B70a36f4398f0853a311dC6699Aba8333Cc1');
-  if (!(protocol.allPositions.length >= 20)) {
+  if (!(protocol.getPositions().length >= 20)) {
     throw new Error('Positions have not been initialized.');
   }
 
-  if (!(protocol.allBorrowPools.length === 4)) {
+  if (!(protocol.getAMMs({ filterBy: 'BORROW' }).length === 4)) {
     throw new Error('Borrow pools have not been initialized.');
   }
 };

@@ -1,4 +1,5 @@
 import { providers, Signer } from 'ethers';
+import { isUndefined } from 'lodash';
 import { BorrowAMM } from '../BorrowAMM/borrowAMM';
 import { Position } from '../Position/position';
 import { AMM } from '../AMM/amm';
@@ -6,6 +7,7 @@ import { getGraphAMMs } from '../../graph-queries/amms';
 import { getGraphPositions } from '../../graph-queries/positions';
 
 import { graphAMMsResponseToAMMs, graphPositionsResponseToPositions } from './mappings';
+import { ONE_DAY_IN_SECONDS } from '../../constants';
 
 // This class creates and initialized all objects of the protocol in phases:
 // - Phase 1 [onLand()]: this initializer needs to be triggered when the user lands on the page
@@ -167,40 +169,164 @@ export class Protocol {
     return this.borrowAmms.find((item) => item.id.toLowerCase() === borrowAMMId.toLowerCase());
   };
 
-  // return all pools
-  public get allPools(): AMM[] {
-    return this.amms;
-  }
+  // Given the AMM, find the associated latest position
+  findPositionByAMM = ({
+    amm,
+    filterBy,
+  }: {
+    amm: AMM;
+    filterBy?: 'TRADER' | 'LP' | 'FT' | 'VT' | 'BORROWER';
+  }): Position | undefined => {
+    const candidates = this.getPositions({ filterBy, active: true })
+      .filter((position) => position.amm.id === amm.id)
+      .sort((a, b) => a.timestamp - b.timestamp);
 
-  // return the LP pools
-  public get lpPools(): AMM[] {
-    return this.amms.filter((amm) => this.lpWhitelistedAmms.has(amm.id));
-  }
+    if (candidates.length === 0) {
+      return;
+    }
 
-  // return the Trader pools
-  public get traderPools(): AMM[] {
-    return this.amms.filter((amm) => this.traderWhitelistedAmms.has(amm.id));
+    return candidates[0];
+  };
+
+  // Given the position, find latest rollover amm
+  findRolloverAMM = (position: Position): AMM | undefined => {
+    const candidates = this.getAMMs()
+      .filter((amm) => amm.rateOracleID === position.amm.rateOracleID)
+      .filter((amm) => amm.underlyingTokenAddress === position.amm.underlyingTokenAddress)
+      .sort((a, b) => b.termEndTimestamp - a.termEndTimestamp);
+
+    if (candidates.length === 0) {
+      return;
+    }
+
+    if (candidates[0].termEndTimestamp < position.amm.latestBlockTimestamp + ONE_DAY_IN_SECONDS) {
+      return;
+    }
+
+    return candidates[0];
+  };
+
+  // return AMMs
+  public getAMMs(
+    params: {
+      filterBy?: 'TRADER' | 'LP' | 'BORROW';
+      active?: boolean;
+    } = {
+      filterBy: undefined,
+      active: undefined,
+    },
+  ): AMM[] {
+    let candidates = this.amms;
+
+    const { filterBy, active } = params;
+
+    if (!isUndefined(active) && active) {
+      candidates = candidates.filter((amm) => !amm.matured);
+    }
+
+    if (!isUndefined(filterBy)) {
+      switch (filterBy) {
+        case 'TRADER': {
+          candidates = candidates.filter((amm) => this.traderWhitelistedAmms.has(amm.id));
+          break;
+        }
+
+        case 'LP': {
+          candidates = candidates.filter((amm) => this.lpWhitelistedAmms.has(amm.id));
+          break;
+        }
+
+        case 'BORROW': {
+          candidates = candidates
+            .filter((amm) => this.traderWhitelistedAmms.has(amm.id))
+            .filter((amm) => amm.isBorrowing);
+          break;
+        }
+
+        default: {
+          break;
+        }
+      }
+    }
+
+    candidates = candidates.sort((a, b) => {
+      if (Number(a.matured) === Number(b.matured)) {
+        return a.tokenName > b.tokenName ? -1 : 1;
+      }
+
+      return Number(a.matured) - Number(b.matured);
+    });
+
+    return candidates;
   }
 
   // return all positions
-  public get allPositions(): Position[] {
-    return this.positions;
-  }
+  public getPositions(
+    params: {
+      filterBy?: 'TRADER' | 'LP' | 'FT' | 'VT' | 'BORROWER';
+      active?: boolean;
+    } = {
+      filterBy: undefined,
+      active: undefined,
+    },
+  ): Position[] {
+    let candidates = this.positions;
 
-  // return the LP positions
-  public get lpPositions(): Position[] {
-    return this.positions.filter((position) => position.positionType === 3);
-  }
+    const { filterBy, active } = params;
 
-  // return the Trader positions
-  public get traderPositions(): Position[] {
-    return this.positions.filter(
-      (position) => position.positionType === 1 || position.positionType === 2,
-    );
-  }
+    if (!isUndefined(active) && active) {
+      candidates = candidates.filter((position) => !position.amm.matured);
+    }
 
-  // return all borrow pools
-  public get allBorrowPools(): BorrowAMM[] {
-    return this.borrowAmms;
+    if (!isUndefined(filterBy)) {
+      switch (filterBy) {
+        case 'TRADER': {
+          candidates = candidates
+            .filter((position) => position.positionType === 1 || position.positionType === 2)
+            .filter((position) => !position.isBorrowing);
+          break;
+        }
+
+        case 'LP': {
+          candidates = candidates.filter((position) => position.positionType === 3);
+          break;
+        }
+
+        case 'FT': {
+          candidates = candidates.filter((position) => position.positionType === 1);
+          break;
+        }
+
+        case 'VT': {
+          candidates = candidates
+            .filter((position) => position.positionType === 2)
+            .filter((position) => !position.isBorrowing);
+          break;
+        }
+
+        case 'BORROWER': {
+          candidates = candidates.filter((position) => position.isBorrowing);
+          break;
+        }
+
+        default: {
+          break;
+        }
+      }
+    }
+
+    candidates = candidates.sort((a, b) => {
+      if (Number(a.isSettled) === Number(b.isSettled)) {
+        if (Number(a.amm.matured) === Number(b.amm.matured)) {
+          return Number(b.amm.matured) - Number(a.amm.matured);
+        }
+
+        return b.timestamp - a.timestamp;
+      }
+
+      return Number(a.isSettled) - Number(b.isSettled);
+    });
+
+    return candidates;
   }
 }

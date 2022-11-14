@@ -1,5 +1,6 @@
 import { providers } from 'ethers';
 import { isUndefined } from 'lodash';
+import { BORROWER_TICKS } from '../../constants';
 import {
   addSwapsToCashflowInfo,
   AdvancedCashflowInfo,
@@ -311,5 +312,14 @@ export class Position {
     }
 
     return 'RED';
+  }
+
+  // is this position coming from borrowing action?
+  public get isBorrowing(): boolean {
+    return (
+      this.positionType === 2 &&
+      this.tickLower === BORROWER_TICKS[0] &&
+      this.tickUpper === BORROWER_TICKS[1]
+    );
   }
 }
