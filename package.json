@@ -17,7 +17,7 @@
     "prettier:fix": "prettier --write './src/**/*.{ts,tsx}'",
     "prepare": "is-ci || husky install",
     "build": "tsc -p tsconfig.build.json",
-    "build-release": "tsc -p tsconfig.dist.json",
+    "build-release": "rm -rf dist; tsc -p tsconfig.dist.json",
     "ts:check": "tsc --noEmit",
     "test": "npx hardhat test",
     "release": "semantic-release"
