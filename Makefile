@@ -20,7 +20,6 @@ build:
 	yarn build
 
 build-release:
-	rm -rf dist/
 	yarn build-release
 
 release:
