@@ -15,15 +15,8 @@ const getPositionsQuery = (cond?: string): string => {
       }
       tickLower
       tickUpper
-      
-      liquidity
-      margin
-      fixedTokenBalance
-      variableTokenBalance
-      accumulatedFees
-  
+    
       positionType
-      isSettled
             
       mints {
         id
@@ -166,13 +159,7 @@ export type GetGraphPositionsResponse = {
     };
     tickLower: string;
     tickUpper: string;
-    liquidity: string;
-    margin: string;
-    fixedTokenBalance: string;
-    variableTokenBalance: string;
-    accumulatedFees: string;
     positionType: string;
-    isSettled: boolean;
     mints: MintGraphResponse[];
     burns: BurnGraphResponse[];
     swaps: SwapGraphResponse[];

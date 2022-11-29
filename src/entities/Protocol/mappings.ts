@@ -205,15 +205,6 @@ export const graphPositionsResponseToPositions = (
       tickUpper,
       positionType: parseInt(item.positionType, 10),
 
-      liquidity: BigNumber.from(item.liquidity),
-      accumulatedFees: BigNumber.from(item.accumulatedFees),
-
-      fixedTokenBalance: BigNumber.from(item.fixedTokenBalance),
-      variableTokenBalance: BigNumber.from(item.variableTokenBalance),
-      margin: BigNumber.from(item.margin),
-
-      isSettled: item.isSettled,
-
       mints: item.mints.map((mint) =>
         mintMap({ mint, amm, positionId: item.id, tickLower, tickUpper }),
       ),

@@ -66,15 +66,6 @@ export const getPosition = async ({
         ? 2
         : 1,
 
-    liquidity: positionInfo._liquidity,
-    accumulatedFees: positionInfo.accumulatedFees,
-
-    fixedTokenBalance: positionInfo.fixedTokenBalance,
-    variableTokenBalance: positionInfo.variableTokenBalance,
-    margin: positionInfo.margin,
-
-    isSettled: positionInfo.isSettled,
-
     mints: [],
     burns: [],
     swaps: [],

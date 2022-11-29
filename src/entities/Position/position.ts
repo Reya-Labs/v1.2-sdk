@@ -93,21 +93,21 @@ export class Position {
     this.tickUpper = args.tickUpper;
     this.positionType = args.positionType;
 
-    this._liquidity = args.amm.tokenDescaler(args.liquidity);
-    this.accumulatedFees = args.amm.tokenDescaler(args.accumulatedFees);
+    this._liquidity = 0;
+    this.accumulatedFees = 0;
 
-    this.fixedTokenBalance = args.amm.tokenDescaler(args.fixedTokenBalance);
-    this.variableTokenBalance = args.amm.tokenDescaler(args.variableTokenBalance);
-    this.margin = args.amm.tokenDescaler(args.margin);
+    this.fixedTokenBalance = 0;
+    this.variableTokenBalance = 0;
+    this.margin = 0;
 
-    this.isSettled = args.isSettled;
+    this.isSettled = false;
 
-    this.mints = args.mints;
-    this.burns = args.burns;
-    this.swaps = args.swaps;
-    this.marginUpdates = args.marginUpdates;
-    this.liquidations = args.liquidations;
-    this.settlements = args.settlements;
+    this.mints = args.mints.sort((a, b) => a.timestamp - b.timestamp);
+    this.burns = args.burns.sort((a, b) => a.timestamp - b.timestamp);
+    this.swaps = args.swaps.sort((a, b) => a.timestamp - b.timestamp);
+    this.marginUpdates = args.marginUpdates.sort((a, b) => a.timestamp - b.timestamp);
+    this.liquidations = args.liquidations.sort((a, b) => a.timestamp - b.timestamp);
+    this.settlements = args.settlements.sort((a, b) => a.timestamp - b.timestamp);
 
     this.requirements = {
       liquidation: 0,
@@ -158,12 +158,9 @@ export class Position {
       return;
     }
 
-    // 1. Load the real-time information if the position is an LP
-    // (if the position is trader, the information from the graph is real-time)
-    if (this._liquidity > 0) {
-      // only LP's information is updated real-time
-      await this.refreshPosition();
-    }
+    // 1. Load the real-time information
+    // only LP's information is updated real-time
+    await this.refreshPosition();
 
     // 2. Load cash flow information
     await this.refreshCashflowInfo();
